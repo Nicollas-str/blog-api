@@ -138,6 +138,16 @@ describe("POST /posts", () => {
     );
   });
 
+  it("deve retornar 400 quando o body vier vazio", async () => {
+    const response = await request(app)
+      .post("/posts")
+      .set("Content-Type", "application/json")
+      .send();
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("Body da requisição não informado");
+  });
+
   it("deve bloquear criação para usuário fora do domínio professor", async () => {
     const response = await request(app).post("/posts").send({
       title: "Post inválido",

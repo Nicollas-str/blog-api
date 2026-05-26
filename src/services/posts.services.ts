@@ -126,7 +126,11 @@ export const getPostById = async (id: string) => {
 };
 
 // Bloco: criação de posts com validação de campos e autorização por domínio de email.
-export const createPost = async (payload: PostPayload) => {
+export const createPost = async (payload?: PostPayload) => {
+  if (!payload || Object.keys(payload).length === 0) {
+    throw createAppError("Body da requisição não informado", 400);
+  }
+
   const { title, content, summary, imageUrl, series, semester, disciplineId, authorId, statusId } = payload;
 
   if (!title || !content || !summary || !disciplineId || !authorId || !statusId) {
