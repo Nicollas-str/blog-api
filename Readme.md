@@ -93,10 +93,8 @@ copy .env.example .env
 ```env
 NODE_ENV=production
 PORT=3000
-
-MONGO_INITDB_ROOT_USERNAME=adm
-MONGO_INITDB_ROOT_PASSWORD=adm
-MONGO_INITDB_DATABASE=blog_api
+USE_IN_MEMORY_DB=false
+MONGODB_URI=mongodb://adm:adm@localhost:27017/blog_api?authSource=admin
 ```
 
 > 💡 O arquivo `.env` contém variáveis sensíveis e não deve ser enviado para o GitHub.
@@ -152,20 +150,26 @@ Após subir os containers:
 
 # 🧪 Testando a API
 
-## Rota principal
+Com a API iniciada e o MongoDB acessível pela variável `MONGODB_URI`, use o Postman ou `curl` para validar as rotas de posts.
+
+Se você estiver sem MongoDB local, defina `USE_IN_MEMORY_DB=true` no `.env`. Nesse modo a API sobe com dados de exemplo em memória e permite testar tudo no Postman sem banco externo.
+
+Exemplo de criação de post:
 
 ```bash
-curl http://localhost:3000
+curl --request POST http://localhost:3000/posts \
+  --header "Content-Type: application/json" \
+  --data '{
+    "title": "Novo post",
+    "content": "Conteúdo completo do post",
+    "summary": "Resumo do post",
+    "disciplineId": "ID_DA_DISCIPLINA",
+    "authorId": "ID_DO_PROFESSOR",
+    "statusId": "ID_DO_STATUS"
+  }'
 ```
 
-Resposta esperada:
-
-```json
-{
-  "message": "Hello World!",
-  "status": "API online"
-}
-```
+Regra importante: apenas usuários com email terminando em `@professor.com` podem criar novos posts.
 
 ---
 
@@ -217,7 +221,7 @@ docker compose down -v
 
 # 🧪 Executando os testes
 
-Os testes utilizam Jest e Supertest.
+Os testes utilizam Jest, Supertest e `mongodb-memory-server`, então não dependem do MongoDB externo para validação automatizada.
 
 ## Instalar dependências localmente
 
@@ -236,7 +240,53 @@ O projeto utiliza:
 - Jest
 - Supertest
 - Cobertura de testes (`--coverage`)
-- Mock do MongoDB
+- MongoDB em memória para testes de integração
+
+## Popular dados para teste manual
+
+Para criar usuários, disciplinas, status e posts de exemplo no banco configurado em `MONGODB_URI`:
+
+```bash
+npm run seed
+```
+
+O seed cria:
+
+- 1 professor autorizado a publicar
+- 1 usuário sem permissão de publicação
+- 2 disciplinas
+- 2 status
+- 2 posts iniciais
+
+## Modelagem persistida
+
+O projeto usa Mongoose como ODM com os seguintes modelos:
+
+- `User`: dados de autenticação e autorização do autor
+- `Discipline`: categoria acadêmica do conteúdo
+- `Status`: estado editorial do post
+- `Post`: entidade central com referências para autor, disciplina e status
+
+Relacionamentos aplicados:
+
+- `User (1) -> (N) Posts`
+- `Discipline (1) -> (N) Posts`
+- `Status (1) -> (N) Posts`
+
+As referências são persistidas no MongoDB por `ObjectId` e retornadas populadas nas consultas de posts.
+
+# 🛣️ Rotas disponíveis
+
+| Método | Endpoint     | Descrição |
+| ------ | ------------ | --------- |
+| GET    | `/users`     | Lista usuários disponíveis para teste |
+| GET    | `/disciplines` | Lista disciplinas disponíveis para seleção |
+| GET    | `/status`    | Lista status disponíveis para seleção |
+| GET    | `/posts`     | Lista todos os posts com autor, disciplina e status |
+| GET    | `/posts/:id` | Busca um post por ID |
+| POST   | `/posts`     | Cria um post validando autor com domínio `@professor.com` |
+| PUT    | `/posts/:id` | Atualiza um post existente |
+| DELETE | `/posts/:id` | Remove um post existente |
 
 ---
 
