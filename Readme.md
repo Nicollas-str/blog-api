@@ -93,9 +93,16 @@ copy .env.example .env
 ```env
 NODE_ENV=production
 PORT=3000
+
+MONGO_INITDB_ROOT_USERNAME=adm
+MONGO_INITDB_ROOT_PASSWORD=adm
+MONGO_INITDB_DATABASE=blog_api
+
 USE_IN_MEMORY_DB=false
 MONGODB_URI=mongodb://adm:adm@localhost:27017/blog_api?authSource=admin
 ```
+
+se USE_IN_MEMORY_DB=true usara memoria local
 
 > 💡 O arquivo `.env` contém variáveis sensíveis e não deve ser enviado para o GitHub.
 
