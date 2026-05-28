@@ -1,19 +1,37 @@
 import mongoose from "mongoose";
 
-const connectDB = async (uri: string): Promise<void> => {
+export const connectDB = async (
+  uri: string,
+): Promise<typeof mongoose.connection> => {
+  if (!uri) {
+    throw new Error("A variável MONGO_URI não foi informada.");
+  }
+
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+
   try {
     const conn = await mongoose.connect(uri);
 
     console.log(
-      `MongoDB conectado: ${conn.connection.host}:${conn.connection.port}`,
+      `MongoDB conectado em ${conn.connection.host}:${conn.connection.port}`,
     );
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error(`Erro ao conectar no MongoDB: ${error.message}`);
-    }
 
-    process.exit(1);
+    return conn.connection;
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Erro desconhecido ao conectar no MongoDB";
+
+    throw new Error(`Falha na conexão com MongoDB: ${message}`);
   }
 };
 
-export default connectDB;
+export const disconnectDB = async (): Promise<void> => {
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+    console.log("MongoDB desconectado.");
+  }
+};
