@@ -7,6 +7,10 @@ import { openApiDocument } from "../docs/openapi";
 // Bloco: agregador central das rotas públicas da aplicação.
 const routes = Router();
 
+routes.get("/", (_req, res) => {
+  res.redirect("/docs");
+});
+
 routes.use(
   "/docs",
   swaggerUi.serve,
@@ -15,6 +19,6 @@ routes.use(
   }),
 );
 routes.use("/posts", postsRoutes);
-routes.use(catalogRoutes);
+routes.use("/catalog", catalogRoutes);
 
 export default routes;
