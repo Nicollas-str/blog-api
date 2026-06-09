@@ -16,11 +16,13 @@ A aplicação foi construída utilizando:
 - Docker
 - Jest
 - Supertest
+- Zod
 
 Além disso, o projeto segue conceitos importantes de desenvolvimento back-end moderno, como:
 
 - Arquitetura MVC
 - Middlewares globais
+- Validação de dados com Zod
 - Variáveis de ambiente
 - Containerização com Docker
 - Persistência de dados
@@ -284,16 +286,27 @@ As referências são persistidas no MongoDB por `ObjectId` e retornadas populada
 
 # 🛣️ Rotas disponíveis
 
-| Método | Endpoint     | Descrição |
-| ------ | ------------ | --------- |
-| GET    | `/users`     | Lista usuários disponíveis para teste |
-| GET    | `/disciplines` | Lista disciplinas disponíveis para seleção |
-| GET    | `/status`    | Lista status disponíveis para seleção |
-| GET    | `/posts`     | Lista todos os posts com autor, disciplina e status |
-| GET    | `/posts/:id` | Busca um post por ID |
-| POST   | `/posts`     | Cria um post validando autor com domínio `@professor.com` |
-| PUT    | `/posts/:id` | Atualiza um post existente |
-| DELETE | `/posts/:id` | Remove um post existente |
+| Método | Endpoint           | Descrição |
+| ------ | ------------------ | --------- |
+| GET    | `/catalog/users`           | Lista usuários disponíveis para teste |
+| POST   | `/catalog/users`           | Cria um novo usuário |
+| PUT    | `/catalog/users/:id`       | Atualiza um usuário existente |
+| DELETE | `/catalog/users/:id`       | Remove um usuário existente |
+| GET    | `/catalog/disciplines`     | Lista disciplinas disponíveis para seleção |
+| POST   | `/catalog/disciplines`     | Cria uma nova disciplina |
+| PUT    | `/catalog/disciplines/:id` | Atualiza uma disciplina existente |
+| DELETE | `/catalog/disciplines/:id` | Remove uma disciplina existente |
+| GET    | `/catalog/status`          | Lista status disponíveis para seleção |
+| POST   | `/catalog/status`          | Cria um novo status |
+| PUT    | `/catalog/status/:id`      | Atualiza um status existente |
+| DELETE | `/catalog/status/:id`      | Remove um status existente |
+| GET    | `/posts`           | Lista somente os posts com status ativo |
+| GET    | `/posts/:id`       | Busca um post por ID |
+| POST   | `/posts`           | Cria um post validando autor com domínio `@professor.com` |
+| PUT    | `/posts/:id`       | Atualiza um post existente |
+| DELETE | `/posts/:id`       | Remove um post existente |
+
+> 💡 O `GET /posts` retorna apenas posts vinculados a um status com `isActive: true`. Posts com status inativo não aparecem na listagem.
 
 ---
 
@@ -315,6 +328,7 @@ src/
 ├── services/
 ├── routes/
 ├── middlewares/
+├── schemas/
 ├── config/
 ├── interfaces/
 ├── app.ts
@@ -322,6 +336,7 @@ src/
 
 tests/
 ├── posts.test.ts
+├── catalog.test.ts
 
 Dockerfile
 docker-compose.yml
@@ -336,13 +351,14 @@ package.json
 
 O projeto utiliza arquitetura MVC para organização das responsabilidades:
 
-| Camada      | Responsabilidade                  |
-| ----------- | --------------------------------- |
-| Routes      | Gerenciamento das rotas           |
-| Controllers | Controle das requisições          |
-| Services    | Regras de negócio                 |
-| Models      | Estrutura e manipulação dos dados |
-| Middlewares | Tratamento global de erros        |
+| Camada      | Responsabilidade                          |
+| ----------- | ----------------------------------------- |
+| Routes      | Gerenciamento das rotas                   |
+| Controllers | Controle das requisições                  |
+| Services    | Regras de negócio                         |
+| Schemas     | Validação e sanitização dos dados com Zod |
+| Models      | Estrutura e manipulação dos dados         |
+| Middlewares | Validação de entrada e tratamento de erros|
 
 ---
 

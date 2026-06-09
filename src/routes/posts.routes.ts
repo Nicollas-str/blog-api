@@ -7,7 +7,7 @@ import {
   updatePostById,
 } from "../controllers/posts.controller";
 import { validate } from "../middlewares/validate.middleware";
-import { createPostSchema } from "../schemas/posts.schema";
+import { createPostSchema, updatePartialPostSchema } from "../schemas/posts.schema";
 
 // Bloco: rotas principais do recurso posts com operações CRUD.
 const postsRoutes = Router();
@@ -15,7 +15,7 @@ const postsRoutes = Router();
 postsRoutes.get("/", listPosts);
 postsRoutes.post("/", validate(createPostSchema), storePost);
 postsRoutes.get("/:id", showPost);
-postsRoutes.put("/:id", validate(createPostSchema), updatePostById);
+postsRoutes.put("/:id", validate(updatePartialPostSchema), updatePostById);
 postsRoutes.delete("/:id", removePost);
 
 export default postsRoutes;

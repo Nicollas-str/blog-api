@@ -50,12 +50,16 @@ const ensureProfessorAuthor = async (authorId: string) => {
 
   const author = await UserModel.findById(authorId);
 
-  if (!author || !author.isActive) {
-    throw createAppError("Autor não encontrado ou inativo", 404);
+  if (!author) {
+    throw createAppError("Autor não encontrado", 404);
+  }
+
+  if (!author.isActive) {
+    throw createAppError("Autor inativo", 404);
   }
 
   if (!author.email.endsWith(PROFESSOR_DOMAIN)) {
-    throw createAppError("Apenas usuários com email @professor.com podem criar posts", 403);
+    throw createAppError("Apenas usuários com email @professor.com podem criar, atualizar ou excluir posts", 403);
   }
 
   return author;
@@ -66,8 +70,12 @@ const ensureActiveDiscipline = async (disciplineId: string) => {
 
   const discipline = await DisciplineModel.findById(disciplineId);
 
-  if (!discipline || !discipline.isActive) {
-    throw createAppError("Disciplina não encontrada ou inativa", 404);
+  if (!discipline) {
+    throw createAppError("Disciplina não encontrada", 404);
+  }
+
+  if (!discipline.isActive) {
+    throw createAppError("Disciplina inativa", 404);
   }
 
   return discipline;
@@ -78,8 +86,12 @@ const ensureActiveStatus = async (statusId: string) => {
 
   const status = await StatusModel.findById(statusId);
 
-  if (!status || !status.isActive) {
-    throw createAppError("Status não encontrado ou inativo", 404);
+  if (!status) {
+    throw createAppError("Status não encontrado", 404);
+  }
+
+  if (!status.isActive) {
+    throw createAppError("Status inativo", 404);
   }
 
   return status;
@@ -94,12 +106,30 @@ const postPopulate: PopulateOptions[] = [
 
 // Bloco: leitura geral de posts com fallback para catálogo em memória.
 export const getAllPosts = async () => {
-  // Mantém o mesmo contrato da API mesmo quando o projeto roda sem MongoDB local.
   if (isMemoryMode()) {
-    return getMemoryPosts();
+    const allPosts = getMemoryPosts();
+    const activePosts = [];
+
+    for (const post of allPosts) {
+      const status = findMemoryStatusById(post.status._id);
+      if (status && status.isActive) {
+        activePosts.push(post);
+      }
+    }
+
+    return activePosts;
   }
 
-  return PostModel.find().populate(postPopulate).sort({ createDate: -1 });
+  const activeStatuses = await StatusModel.find({ isActive: true }).select("_id");
+  const activeStatusIds = [];
+
+  for (const s of activeStatuses) {
+    activeStatusIds.push(s._id);
+  }
+
+  return PostModel.find({ status: { $in: activeStatusIds } })
+    .populate(postPopulate)
+    .sort({ createDate: -1 });
 };
 
 // Bloco: busca individual de post com validação do id informado na rota.
@@ -138,7 +168,6 @@ export const createPost = async (payload?: PostPayload) => {
   }
 
   if (isMemoryMode()) {
-    // No modo local, as referências são resolvidas no catálogo em memória para permitir testes no Postman.
     validateObjectId(authorId, "authorId");
     validateObjectId(disciplineId, "disciplineId");
     validateObjectId(statusId, "statusId");
@@ -147,20 +176,32 @@ export const createPost = async (payload?: PostPayload) => {
     const discipline = findMemoryDisciplineById(disciplineId);
     const status = findMemoryStatusById(statusId);
 
-    if (!author || !author.isActive) {
-      throw createAppError("Autor não encontrado ou inativo", 404);
+    if (!author) {
+      throw createAppError("Autor não encontrado", 404);
+    }
+
+    if (!author.isActive) {
+      throw createAppError("Autor inativo", 404);
     }
 
     if (!author.email.endsWith(PROFESSOR_DOMAIN)) {
-      throw createAppError("Apenas usuários com email @professor.com podem criar posts", 403);
+      throw createAppError("Apenas usuários com email @professor.com podem criar, atualizar ou excluir posts", 403);
     }
 
-    if (!discipline || !discipline.isActive) {
-      throw createAppError("Disciplina não encontrada ou inativa", 404);
+    if (!discipline) {
+      throw createAppError("Disciplina não encontrada", 404);
     }
 
-    if (!status || !status.isActive) {
-      throw createAppError("Status não encontrado ou inativo", 404);
+    if (!discipline.isActive) {
+      throw createAppError("Disciplina inativa", 404);
+    }
+
+    if (!status) {
+      throw createAppError("Status não encontrado", 404);
+    }
+
+    if (!status.isActive) {
+      throw createAppError("Status inativo", 404);
     }
 
     return createMemoryPost({
@@ -185,12 +226,9 @@ export const createPost = async (payload?: PostPayload) => {
     });
   }
 
-  await Promise.all([
-    // Em produção, a criação depende de autor, disciplina e status válidos no MongoDB.
-    ensureProfessorAuthor(authorId),
-    ensureActiveDiscipline(disciplineId),
-    ensureActiveStatus(statusId),
-  ]);
+  await ensureProfessorAuthor(authorId);
+  await ensureActiveDiscipline(disciplineId);
+  await ensureActiveStatus(statusId);
 
   const post = await PostModel.create({
     title,
@@ -212,7 +250,6 @@ export const updatePost = async (id: string, payload: PostUpdatePayload) => {
   validateObjectId(id, "id");
 
   if (isMemoryMode()) {
-    // O update reaplica a mesma regra de autorização para manter o comportamento igual ao persistido.
     const currentPost = findMemoryPostById(id);
 
     if (!currentPost) {
@@ -229,20 +266,32 @@ export const updatePost = async (id: string, payload: PostUpdatePayload) => {
       ? findMemoryStatusById(payload.statusId)
       : findMemoryStatusById(currentPost.status._id);
 
-    if (!author || !author.isActive) {
-      throw createAppError("Autor não encontrado ou inativo", 404);
+    if (!author) {
+      throw createAppError("Autor não encontrado", 404);
+    }
+
+    if (!author.isActive) {
+      throw createAppError("Autor inativo", 404);
     }
 
     if (!author.email.endsWith(PROFESSOR_DOMAIN)) {
-      throw createAppError("Apenas usuários com email @professor.com podem criar posts", 403);
+      throw createAppError("Apenas usuários com email @professor.com podem criar, atualizar ou excluir posts", 403);
     }
 
-    if (!discipline || !discipline.isActive) {
-      throw createAppError("Disciplina não encontrada ou inativa", 404);
+    if (!discipline) {
+      throw createAppError("Disciplina não encontrada", 404);
     }
 
-    if (!status || !status.isActive) {
-      throw createAppError("Status não encontrado ou inativo", 404);
+    if (!discipline.isActive) {
+      throw createAppError("Disciplina inativa", 404);
+    }
+
+    if (!status) {
+      throw createAppError("Status não encontrado", 404);
+    }
+
+    if (!status.isActive) {
+      throw createAppError("Status inativo", 404);
     }
 
     const post = updateMemoryPost(id, (storedPost) => ({
@@ -280,8 +329,10 @@ export const updatePost = async (id: string, payload: PostUpdatePayload) => {
     throw createAppError("Post não encontrado", 404);
   }
 
+  const authorIdToValidate = payload.authorId ?? post.author.toString();
+  await ensureProfessorAuthor(authorIdToValidate);
+
   if (payload.authorId) {
-    await ensureProfessorAuthor(payload.authorId);
     post.set("author", payload.authorId);
   }
 
@@ -295,52 +346,53 @@ export const updatePost = async (id: string, payload: PostUpdatePayload) => {
     post.set("status", payload.statusId);
   }
 
-  if (payload.title !== undefined) {
-    post.title = payload.title;
-  }
-
-  if (payload.content !== undefined) {
-    post.content = payload.content;
-  }
-
-  if (payload.summary !== undefined) {
-    post.summary = payload.summary;
-  }
-
-  if (payload.imageUrl !== undefined) {
-    post.imageUrl = payload.imageUrl;
-  }
-
-  if (payload.series !== undefined) {
-    post.series = payload.series;
-  }
-
-  if (payload.semester !== undefined) {
-    post.semester = payload.semester;
-  }
+  if (payload.title !== undefined) post.title = payload.title;
+  if (payload.content !== undefined) post.content = payload.content;
+  if (payload.summary !== undefined) post.summary = payload.summary;
+  if (payload.imageUrl !== undefined) post.imageUrl = payload.imageUrl;
+  if (payload.series !== undefined) post.series = payload.series;
+  if (payload.semester !== undefined) post.semester = payload.semester;
 
   await post.save();
 
   return PostModel.findById(post._id).populate(postPopulate);
 };
 
-// Bloco: remoção de posts tanto no MongoDB quanto no fallback local.
+// Bloco: remoção de posts com verificação de autorização por domínio de email.
 export const deletePost = async (id: string) => {
   validateObjectId(id, "id");
 
   if (isMemoryMode()) {
-    const deleted = deleteMemoryPost(id);
+    const post = findMemoryPostById(id);
 
-    if (!deleted) {
+    if (!post) {
       throw createAppError("Post não encontrado", 404);
     }
 
+    const author = findMemoryUserById(post.author._id);
+
+    if (!author) {
+      throw createAppError("Autor não encontrado", 404);
+    }
+
+    if (!author.isActive) {
+      throw createAppError("Autor inativo", 404);
+    }
+
+    if (!author.email.endsWith(PROFESSOR_DOMAIN)) {
+      throw createAppError("Apenas usuários com email @professor.com podem criar, atualizar ou excluir posts", 403);
+    }
+
+    deleteMemoryPost(id);
     return;
   }
 
-  const deletedPost = await PostModel.findByIdAndDelete(id);
+  const post = await PostModel.findById(id);
 
-  if (!deletedPost) {
+  if (!post) {
     throw createAppError("Post não encontrado", 404);
   }
+
+  await ensureProfessorAuthor(post.author.toString());
+  await PostModel.findByIdAndDelete(id);
 };
