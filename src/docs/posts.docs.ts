@@ -44,6 +44,34 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
   });
 
   registry.registerPath({
+    method: "get",
+    path: "/posts/{id}",
+    tags: ["Posts"],
+    summary: "Retorna um post pelo ID",
+    request: {
+      params: z.object({
+        id: objectIdParam,
+      }),
+    },
+    responses: {
+      200: {
+        description: "Post retornado com sucesso",
+        content: {
+          "application/json": {
+            schema: postResponseSchema,
+          },
+        },
+      },
+      400: {
+        description: "ID inválido",
+      },
+      404: {
+        description: "Post não encontrado",
+      },
+    },
+  });
+
+  registry.registerPath({
     method: "post",
     path: "/posts",
     tags: ["Posts"],
@@ -94,6 +122,41 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
             schema: postResponseSchema,
           },
         },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/posts/{id}",
+    tags: ["Posts"],
+    summary: "Atualiza post parcialmente",
+    request: {
+      params: z.object({
+        id: objectIdParam,
+      }),
+      body: {
+        content: {
+          "application/json": {
+            schema: updatePartialPostSchema,
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: "Post atualizado com sucesso",
+        content: {
+          "application/json": {
+            schema: postResponseSchema,
+          },
+        },
+      },
+      400: {
+        description: "Dados inválidos ou body vazio",
+      },
+      404: {
+        description: "Post não encontrado",
       },
     },
   });

@@ -14,7 +14,6 @@ import {
   CreateUserInput,
 } from "../schemas/catalog.schema";
 
-// Bloco: chaveia entre catálogo persistido no MongoDB e catálogo local em memória.
 
 const isMemoryMode = (): boolean => process.env.USE_IN_MEMORY_DB === "true";
 

@@ -29,7 +29,7 @@ export interface PostPayload {
 
 export type PostUpdatePayload = Partial<PostPayload>;
 
-// Bloco: constantes e helpers compartilhados pela regra de negócio dos posts.
+// ─────────────────────────────────── Helpers ──────────────────────────────────
 const PROFESSOR_DOMAIN = "@professor.com";
 const isMemoryMode = (): boolean => process.env.USE_IN_MEMORY_DB === "true";
 
@@ -97,14 +97,14 @@ const ensureActiveStatus = async (statusId: string) => {
   return status;
 };
 
-// Bloco: define os relacionamentos populados quando os posts vêm do MongoDB.
+// ─────────────────────────────────── Populate ──────────────────────────────────
 const postPopulate: PopulateOptions[] = [
   { path: "author", select: "name username email" },
   { path: "discipline", select: "label order" },
   { path: "status", select: "label order" },
 ];
 
-// Bloco: leitura geral de posts com fallback para catálogo em memória.
+// ─────────────────────────────────── Serviços ──────────────────────────────────
 export const getAllPosts = async () => {
   if (isMemoryMode()) {
     const allPosts = getMemoryPosts();
@@ -132,7 +132,6 @@ export const getAllPosts = async () => {
     .sort({ createDate: -1 });
 };
 
-// Bloco: busca individual de post com validação do id informado na rota.
 export const getPostById = async (id: string) => {
   validateObjectId(id, "id");
 
@@ -155,7 +154,6 @@ export const getPostById = async (id: string) => {
   return post;
 };
 
-// Bloco: criação de posts com validação de campos e autorização por domínio de email.
 export const createPost = async (payload?: PostPayload) => {
   if (!payload || Object.keys(payload).length === 0) {
     throw createAppError("Body da requisição não informado", 400);
@@ -245,7 +243,6 @@ export const createPost = async (payload?: PostPayload) => {
   return PostModel.findById(post._id).populate(postPopulate);
 };
 
-// Bloco: atualização de posts reaplicando as validações de referência e autorização.
 export const updatePost = async (id: string, payload: PostUpdatePayload) => {
   validateObjectId(id, "id");
 
@@ -358,7 +355,6 @@ export const updatePost = async (id: string, payload: PostUpdatePayload) => {
   return PostModel.findById(post._id).populate(postPopulate);
 };
 
-// Bloco: remoção de posts com verificação de autorização por domínio de email.
 export const deletePost = async (id: string) => {
   validateObjectId(id, "id");
 
