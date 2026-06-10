@@ -172,6 +172,7 @@ describe("POST /posts — validação de campos", () => {
       title: "Título válido",
       content: "Conteúdo válido",
       summary: "Resumo válido",
+      semester: "1",
       disciplineId: "id-invalido",
       authorId: professorId,
       statusId,
@@ -186,6 +187,7 @@ describe("POST /posts — validação de campos", () => {
       title: "<script>alert('xss')</script>Título Limpo",
       content: "<b>Conteúdo completo do post</b>",
       summary: "<i>Resumo completo do post</i>",
+      semester: "1",
       disciplineId,
       authorId: professorId,
       statusId,
@@ -230,8 +232,9 @@ describe("POST /posts", () => {
   it("deve bloquear criação para usuário fora do domínio professor", async () => {
     const response = await request(app).post("/posts").send({
       title: "Post inválido",
-      content: "Conteúdo",
-      summary: "Resumo",
+      content: "Conteúdo válido do post",
+      summary: "Resumo válido do post",
+      semester: "1",
       disciplineId,
       authorId: studentId,
       statusId,
@@ -253,8 +256,114 @@ describe("PUT /posts/:id — validação de campos", () => {
     expect(response.body.message).toBe("Body da requisição não informado");
   });
 
-  it("deve retornar 400 quando imageUrl for inválida", async () => {
+  it("deve retornar 400 quando imageUrl for inválida no PUT", async () => {
     const response = await request(app).put(`/posts/${postId}`).send({
+      title: "Título válido",
+      content: "Conteúdo válido do post",
+      summary: "Resumo válido do post",
+      semester: "1",
+      disciplineId,
+      authorId: professorId,
+      statusId,
+      imageUrl: "nao-e-uma-url",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("imageUrl deve ser uma URL válida");
+  });
+
+  it("deve retornar 400 quando semester estiver ausente no PUT", async () => {
+    const response = await request(app).put(`/posts/${postId}`).send({
+      title: "Título válido",
+      content: "Conteúdo válido do post",
+      summary: "Resumo válido do post",
+      disciplineId,
+      authorId: professorId,
+      statusId,
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("Campo obrigatório não informado: semestre");
+  });
+
+  it("deve sanitizar tags HTML nos campos de texto no PUT", async () => {
+    const response = await request(app).put(`/posts/${postId}`).send({
+      title: "<b>Título Atualizado via PUT</b>",
+      content: "<p>Conteúdo atualizado via PUT com HTML</p>",
+      summary: "<i>Resumo atualizado via PUT</i>",
+      semester: "1",
+      disciplineId,
+      authorId: professorId,
+      statusId,
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.title).toBe("Título Atualizado via PUT");
+    expect(response.body.data.content).toBe("Conteúdo atualizado via PUT com HTML");
+    expect(response.body.data.summary).toBe("Resumo atualizado via PUT");
+  });
+});
+
+describe("PUT /posts/:id", () => {
+  it("deve atualizar um post existente com todos os campos", async () => {
+    const response = await request(app).put(`/posts/${postId}`).send({
+      title: "Post atualizado via PUT",
+      content: "Conteúdo atualizado via PUT",
+      summary: "Resumo atualizado via PUT",
+      semester: "1",
+      disciplineId,
+      authorId: professorId,
+      statusId,
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual(
+      expect.objectContaining({
+        _id: postId,
+        title: "Post atualizado via PUT",
+        summary: "Resumo atualizado via PUT",
+      }),
+    );
+  });
+
+  it("deve retornar 400 quando faltar campo obrigatório no PUT", async () => {
+    const response = await request(app).put(`/posts/${postId}`).send({
+      title: "Título sem os outros campos",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("Campo obrigatório não informado");
+  });
+
+  it("deve retornar 404 para post inexistente", async () => {
+    const response = await request(app).put("/posts/000000000000000000000001").send({
+      title: "Título válido",
+      content: "Conteúdo válido do post",
+      summary: "Resumo válido do post",
+      semester: "1",
+      disciplineId,
+      authorId: professorId,
+      statusId,
+    });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toHaveProperty("message");
+  });
+});
+
+describe("PATCH /posts/:id — validação de campos", () => {
+  it("deve retornar 400 quando o body vier vazio", async () => {
+    const response = await request(app)
+      .patch(`/posts/${postId}`)
+      .set("Content-Type", "application/json")
+      .send();
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("Body da requisição não informado");
+  });
+
+  it("deve retornar 400 quando imageUrl for inválida no PATCH", async () => {
+    const response = await request(app).patch(`/posts/${postId}`).send({
       imageUrl: "nao-e-uma-url",
     });
 
@@ -263,7 +372,7 @@ describe("PUT /posts/:id — validação de campos", () => {
   });
 
   it("deve sanitizar tags HTML ao atualizar campos de texto", async () => {
-    const response = await request(app).put(`/posts/${postId}`).send({
+    const response = await request(app).patch(`/posts/${postId}`).send({
       title: "<h1>Título Atualizado</h1>",
       summary: "<p>Resumo atualizado do post</p>",
     });
@@ -274,11 +383,16 @@ describe("PUT /posts/:id — validação de campos", () => {
   });
 });
 
-describe("PUT /posts/:id", () => {
-  it("deve atualizar um post existente", async () => {
-    const response = await request(app).put(`/posts/${postId}`).send({
+describe("PATCH /posts/:id", () => {
+  it("deve atualizar um post com todos os campos", async () => {
+    const response = await request(app).patch(`/posts/${postId}`).send({
       title: "Post atualizado",
+      content: "Conteúdo atualizado",
       summary: "Resumo atualizado",
+      semester: "1",
+      disciplineId,
+      authorId: professorId,
+      statusId,
     });
 
     expect(response.status).toBe(200);
@@ -291,9 +405,25 @@ describe("PUT /posts/:id", () => {
     );
   });
 
+  it("deve atualizar parcialmente um post existente", async () => {
+    const response = await request(app).patch(`/posts/${postId}`).send({
+      title: "Post atualizado via PATCH",
+      summary: "Resumo atualizado via PATCH",
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual(
+      expect.objectContaining({
+        _id: postId,
+        title: "Post atualizado via PATCH",
+        summary: "Resumo atualizado via PATCH",
+      }),
+    );
+  });
+
   it("deve retornar 404 para post inexistente", async () => {
-    const response = await request(app).put("/posts/000000000000000000000001").send({
-      title: "Tentativa de update",
+    const response = await request(app).patch("/posts/000000000000000000000001").send({
+      title: "Tentativa de patch",
     });
 
     expect(response.status).toBe(404);

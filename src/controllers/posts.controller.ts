@@ -7,12 +7,10 @@ import {
   updatePost,
 } from "../services/posts.services";
 
-// Bloco: normaliza o parâmetro id para compatibilidade com a tipagem do Express 5.
 const getRouteId = (idParam: string | string[]): string => {
   return Array.isArray(idParam) ? idParam[0] : idParam;
 };
 
-// Bloco: controller de listagem dos posts.
 export const listPosts = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const posts = await getAllPosts();
@@ -25,7 +23,6 @@ export const listPosts = async (_req: Request, res: Response, next: NextFunction
   }
 };
 
-// Bloco: controller de busca de um post específico por id.
 export const showPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const post = await getPostById(getRouteId(req.params.id));
@@ -38,7 +35,6 @@ export const showPost = async (req: Request, res: Response, next: NextFunction) 
   }
 };
 
-// Bloco: controller de criação de posts.
 export const storePost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const post = await createPost(req.body);
@@ -51,7 +47,6 @@ export const storePost = async (req: Request, res: Response, next: NextFunction)
   }
 };
 
-// Bloco: controller de atualização parcial ou completa do post existente.
 export const updatePostById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const post = await updatePost(getRouteId(req.params.id), req.body);
@@ -64,7 +59,18 @@ export const updatePostById = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-// Bloco: controller de remoção do post pelo id informado.
+export const patchPostById = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const post = await updatePost(getRouteId(req.params.id), req.body);
+
+    return res.status(200).json({
+      data: post,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const removePost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     await deletePost(getRouteId(req.params.id));

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   listPosts,
+  patchPostById,
   removePost,
   showPost,
   storePost,
@@ -9,13 +10,13 @@ import {
 import { validate } from "../middlewares/validate.middleware";
 import { createPostSchema, updatePartialPostSchema } from "../schemas/posts.schema";
 
-// Bloco: rotas principais do recurso posts com operações CRUD.
 const postsRoutes = Router();
 
 postsRoutes.get("/", listPosts);
 postsRoutes.post("/", validate(createPostSchema), storePost);
 postsRoutes.get("/:id", showPost);
-postsRoutes.put("/:id", validate(updatePartialPostSchema), updatePostById);
+postsRoutes.put("/:id", validate(createPostSchema), updatePostById);
+postsRoutes.patch("/:id", validate(updatePartialPostSchema), patchPostById);
 postsRoutes.delete("/:id", removePost);
 
 export default postsRoutes;

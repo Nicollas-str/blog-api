@@ -1,35 +1,39 @@
 import "../config/zod";
 import { z } from "zod";
 
-const objectIdSchema = z
-  .string()
-  .regex(/^[0-9a-fA-F]{24}$/, "ID inválido do MongoDB");
-
-function stripHtml(value: string): string {
+const stripHtml = (value: string): string => {
   let result = value;
   result = result.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
   result = result.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
   result = result.replace(/<[^>]*>/g, "");
   result = result.trim();
   return result;
-}
+};
 
-const sanitizedString = z
+const sanitizedField = (label: string, minLen: number, maxLen?: number) =>
+  z
+    .string({ error: "Campo obrigatório não informado: " + label })
+    .trim()
+    .transform(stripHtml)
+    .refine((val) => val.length > 0, { message: "Campo obrigatório não informado: " + label })
+    .refine((val) => val.length >= minLen, { message: "O campo " + label + " deve ter pelo menos " + minLen + " caracteres" })
+    .refine((val) => maxLen === undefined || val.length <= maxLen, { message: "O campo " + label + " deve ter no maximo " + maxLen + " caracteres" });
+
+const objectIdSchema = z
   .string()
-  .transform(stripHtml)
-  .refine((val) => val.length > 0, { message: "Campos obrigatórios não informados" });
+  .regex(/^[0-9a-fA-F]{24}$/, "ID inválido do MongoDB");
 
 export const createPostSchema = z
   .object({
-    title: sanitizedString.meta({
+    title: sanitizedField("título", 5, 100).meta({
       description: "Título do post",
       example: "Meu primeiro post",
     }),
-    content: sanitizedString.meta({
+    content: sanitizedField("conteúdo", 10).meta({
       description: "Conteúdo completo do post",
       example: "Aqui vai o corpo do texto do post...",
     }),
-    summary: sanitizedString.meta({
+    summary: sanitizedField("resumo", 10, 300).meta({
       description: "Resumo do post",
       example: "Uma breve introdução sobre o assunto abordado.",
     }),
@@ -37,12 +41,12 @@ export const createPostSchema = z
       description: "URL da imagem de capa (opcional)",
       example: "https://exemplo.com/imagem.jpg",
     }),
-    series: sanitizedString.optional().meta({
+    series: z.string().trim().optional().meta({
       description: "Série/Ano letivo relacionado (opcional)",
       example: "3º Ano Ensino Médio",
     }),
-    semester: z.string().trim().optional().meta({
-      description: "Semestre letivo (opcional)",
+    semester: z.string({ error: "Campo obrigatório não informado: semestre" }).trim().meta({
+      description: "Semestre letivo",
       example: "1",
     }),
     disciplineId: objectIdSchema.meta({
