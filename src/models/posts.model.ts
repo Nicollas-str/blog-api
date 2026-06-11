@@ -1,6 +1,5 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
 
-// Bloco: contrato do documento Post com referências para autor, disciplina e status.
 export interface IPost extends Document {
   title: string;
   content: string;
@@ -15,7 +14,6 @@ export interface IPost extends Document {
   updateDate: Date;
 }
 
-// Bloco: schema central dos posts, incluindo os relacionamentos via ObjectId.
 const PostSchema = new Schema<IPost>(
   {
     title: {
@@ -70,7 +68,6 @@ const PostSchema = new Schema<IPost>(
   },
 );
 
-// Bloco: model Mongoose da coleção principal de posts.
 const PostModel = mongoose.model<IPost>("Post", PostSchema);
 
 export default PostModel;

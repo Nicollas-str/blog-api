@@ -1,6 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-// Bloco: contrato do documento User persistido no MongoDB.
 export interface IUser extends Document {
   name: string;
   username: string;
@@ -13,7 +12,6 @@ export interface IUser extends Document {
   isActive: boolean;
 }
 
-// Bloco: schema do usuário com campos de autenticação, identificação e controle de acesso.
 const UserSchema = new Schema<IUser>(
   {
     name: {
@@ -63,7 +61,6 @@ const UserSchema = new Schema<IUser>(
   },
 );
 
-// Bloco: model Mongoose usado pelos serviços para consultas e persistência de usuários.
 const UserModel = mongoose.model<IUser>("User", UserSchema);
 
 export default UserModel;

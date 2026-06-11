@@ -1,6 +1,5 @@
 import { Types } from "mongoose";
 
-// Bloco: tipos usados pelo fallback local para reproduzir o contrato da API sem MongoDB.
 export interface MemoryUser {
   _id: string;
   name: string;
@@ -45,12 +44,9 @@ interface MemoryStore {
   posts: MemoryPost[];
 }
 
-// Bloco: gera ObjectIds válidos para que os testes manuais usem o mesmo formato do MongoDB.
 const createId = (): string => new Types.ObjectId().toString();
 
-// Bloco: monta a massa inicial de usuários, catálogos e posts para o modo local.
 const createInitialStore = (): MemoryStore => {
-  // Dados base para uso local quando MongoDB e Docker não estão disponíveis.
   const professorId = createId();
   const studentId = createId();
   const mathId = createId();
@@ -115,15 +111,12 @@ const createInitialStore = (): MemoryStore => {
   return { users, disciplines, statuses, posts };
 };
 
-// Bloco: mantém o estado em memória compartilhado enquanto a API estiver em execução.
 let memoryStore: MemoryStore = createInitialStore();
 
 export const resetMemoryStore = (): void => {
-  // Reinicia o catálogo em memória a cada boot para deixar os testes previsíveis.
   memoryStore = createInitialStore();
 };
 
-// Bloco: consultas do catálogo local usadas por serviços e controllers no modo em memória.
 export const getMemoryUsers = (): MemoryUser[] => memoryStore.users;
 
 export const getMemoryDisciplines = (): MemoryDiscipline[] => memoryStore.disciplines;
@@ -132,7 +125,6 @@ export const getMemoryStatuses = (): MemoryStatus[] => memoryStore.statuses;
 
 export const getMemoryPosts = (): MemoryPost[] => memoryStore.posts;
 
-// Bloco: buscas pontuais por id para validar referências sem acessar o MongoDB.
 export const findMemoryUserById = (id: string): MemoryUser | undefined =>
   memoryStore.users.find((user) => user._id === id);
 
@@ -145,11 +137,9 @@ export const findMemoryStatusById = (id: string): MemoryStatus | undefined =>
 export const findMemoryPostById = (id: string): MemoryPost | undefined =>
   memoryStore.posts.find((post) => post._id === id);
 
-// Bloco: operações de escrita do fallback local para criar, atualizar e remover posts.
 export const createMemoryPost = (
   post: Omit<MemoryPost, "_id" | "createDate" | "updateDate">,
 ): MemoryPost => {
-  // Gera metadados equivalentes aos timestamps do schema persistido.
   const now = new Date().toISOString();
   const createdPost: MemoryPost = {
     ...post,
@@ -167,7 +157,6 @@ export const updateMemoryPost = (
   id: string,
   updater: (post: MemoryPost) => MemoryPost,
 ): MemoryPost | undefined => {
-  // Localiza o item atual para aplicar a mutação recebida do serviço de posts.
   const index = memoryStore.posts.findIndex((post) => post._id === id);
 
   if (index === -1) {
@@ -177,7 +166,6 @@ export const updateMemoryPost = (
   const updatedPost = updater(memoryStore.posts[index]);
   memoryStore.posts[index] = {
     ...updatedPost,
-    // Atualiza a data para manter o comportamento próximo ao timestamps do Mongoose.
     updateDate: new Date().toISOString(),
   };
 
@@ -185,7 +173,6 @@ export const updateMemoryPost = (
 };
 
 export const deleteMemoryPost = (id: string): boolean => {
-  // Remove o post do array e retorna se houve exclusão real.
   const initialLength = memoryStore.posts.length;
   memoryStore.posts = memoryStore.posts.filter((post) => post._id !== id);
   return memoryStore.posts.length < initialLength;
