@@ -35,7 +35,7 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
         content: {
           "application/json": {
             schema: z.object({
-              posts: z.array(postResponseSchema),
+              data: z.array(postResponseSchema),
             }),
           },
         },
@@ -58,7 +58,9 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
         description: "Post retornado com sucesso",
         content: {
           "application/json": {
-            schema: postResponseSchema,
+            schema: z.object({
+              data: postResponseSchema,
+            }),
           },
         },
       },
@@ -90,9 +92,20 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
         description: "Post criado com sucesso",
         content: {
           "application/json": {
-            schema: postResponseSchema,
+            schema: z.object({
+              data: postResponseSchema,
+            }),
           },
         },
+      },
+      400: {
+        description: "Dados inválidos ou body vazio",
+      },
+      403: {
+        description: "Autor não possui email @professor.com",
+      },
+      404: {
+        description: "Autor, disciplina ou status não encontrado",
       },
     },
   });
@@ -119,9 +132,20 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
         description: "Post atualizado com sucesso",
         content: {
           "application/json": {
-            schema: postResponseSchema,
+            schema: z.object({
+              data: postResponseSchema,
+            }),
           },
         },
+      },
+      400: {
+        description: "Dados inválidos ou body vazio",
+      },
+      403: {
+        description: "Autor não possui email @professor.com",
+      },
+      404: {
+        description: "Post não encontrado",
       },
     },
   });
@@ -148,7 +172,9 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
         description: "Post atualizado com sucesso",
         content: {
           "application/json": {
-            schema: postResponseSchema,
+            schema: z.object({
+              data: postResponseSchema,
+            }),
           },
         },
       },
@@ -174,6 +200,12 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
     responses: {
       204: {
         description: "Post removido com sucesso",
+      },
+      403: {
+        description: "Autor não possui email @professor.com",
+      },
+      404: {
+        description: "Post não encontrado",
       },
     },
   });
