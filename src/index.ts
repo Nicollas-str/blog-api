@@ -2,32 +2,66 @@ import "ascii-art-say";
 import "./config/zod";
 import dotenv from "dotenv";
 import app from "./app";
-import connectDB from "./config/database";
+import { connectDB, disconnectDB } from "./config/database";
 import { resetMemoryStore } from "./services/memory-data.service";
 
 dotenv.config();
 
-// Bloco: leitura das variáveis de ambiente usadas no bootstrap da API.
-const PORT: number = Number(process.env.PORT) || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || "";
 const USE_IN_MEMORY_DB = process.env.USE_IN_MEMORY_DB === "true";
 
-// Bloco: inicialização da aplicação com conexão MongoDB ou fallback local em memória.
+let server: ReturnType<typeof app.listen> | null = null;
+let isShuttingDown = false;
+
+const shutdown = async (signal: string): Promise<void> => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
+  console.log(`Recebido ${signal}. Encerrando aplicação...`);
+
+  try {
+    if (!USE_IN_MEMORY_DB) {
+      await disconnectDB();
+      console.log("MongoDB desconectado.");
+    }
+
+    if (server) {
+      server.close(() => {
+        console.log("Servidor HTTP fechado.");
+        process.exit(0);
+      });
+    } else {
+      process.exit(0);
+    }
+  } catch (error) {
+    console.error("Erro ao encerrar aplicação:", error);
+    process.exit(1);
+  }
+};
+
 const start = async (): Promise<void> => {
   if (!USE_IN_MEMORY_DB && !MONGODB_URI) {
     throw new Error("MONGODB_URI não definida no .env");
   }
 
   if (USE_IN_MEMORY_DB) {
-    // Fallback local para desenvolvimento e testes manuais sem dependência externa de banco.
     resetMemoryStore();
     console.log("API iniciada em modo local com dados em memória.");
   } else {
     await connectDB(MONGODB_URI);
   }
 
-  app.listen(PORT, () => {
+  server = app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
+  });
+
+  process.on("SIGINT", () => {
+    void shutdown("SIGINT");
+  });
+
+  process.on("SIGTERM", () => {
+    void shutdown("SIGTERM");
   });
 };
 

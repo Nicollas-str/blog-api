@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import connectDB, { disconnectDB } from "../config/database";
+import { connectDB, disconnectDB } from "../config/database";
 import DisciplineModel from "../models/disciplines.model";
 import PostModel from "../models/posts.model";
 import StatusModel from "../models/status.model";

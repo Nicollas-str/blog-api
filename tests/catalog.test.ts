@@ -1,7 +1,7 @@
 import request from "supertest";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import app from "../src/app";
-import connectDB, { disconnectDB } from "../src/config/database";
+import { connectDB, disconnectDB } from "../src/config/database";
 import DisciplineModel from "../src/models/disciplines.model";
 import StatusModel from "../src/models/status.model";
 import UserModel from "../src/models/users.model";
@@ -59,9 +59,7 @@ describe("GET /users", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.data).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ name: "Prof Teste" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ name: "Prof Teste" })]),
     );
   });
 });
@@ -187,7 +185,9 @@ describe("DELETE /users/:id", () => {
   });
 
   it("deve retornar 404 ao remover usuário inexistente", async () => {
-    const response = await request(app).delete("/catalog/users/000000000000000000000001");
+    const response = await request(app).delete(
+      "/catalog/users/000000000000000000000001",
+    );
 
     expect(response.status).toBe(404);
     expect(response.body.message).toBe("Usuário não encontrado");
@@ -264,18 +264,22 @@ describe("POST /disciplines", () => {
 
 describe("PUT /disciplines/:id", () => {
   it("deve atualizar o label da disciplina com sucesso", async () => {
-    const response = await request(app).put(`/catalog/disciplines/${disciplineId}`).send({
-      label: "Matemática Avançada",
-    });
+    const response = await request(app)
+      .put(`/catalog/disciplines/${disciplineId}`)
+      .send({
+        label: "Matemática Avançada",
+      });
 
     expect(response.status).toBe(200);
     expect(response.body.data.label).toBe("Matemática Avançada");
   });
 
   it("deve desativar a disciplina com sucesso", async () => {
-    const response = await request(app).put(`/catalog/disciplines/${disciplineId}`).send({
-      isActive: false,
-    });
+    const response = await request(app)
+      .put(`/catalog/disciplines/${disciplineId}`)
+      .send({
+        isActive: false,
+      });
 
     expect(response.status).toBe(200);
     expect(response.body.data.isActive).toBe(false);
@@ -291,9 +295,11 @@ describe("PUT /disciplines/:id", () => {
   });
 
   it("deve retornar 400 para ID inválido no PUT de disciplina", async () => {
-    const response = await request(app).put("/catalog/disciplines/id-errado").send({
-      label: "Teste",
-    });
+    const response = await request(app)
+      .put("/catalog/disciplines/id-errado")
+      .send({
+        label: "Teste",
+      });
 
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty("message");
@@ -302,20 +308,26 @@ describe("PUT /disciplines/:id", () => {
 
 describe("DELETE /disciplines/:id", () => {
   it("deve remover a disciplina com sucesso", async () => {
-    const response = await request(app).delete(`/catalog/disciplines/${disciplineId}`);
+    const response = await request(app).delete(
+      `/catalog/disciplines/${disciplineId}`,
+    );
 
     expect(response.status).toBe(204);
   });
 
   it("deve retornar 404 ao remover disciplina inexistente", async () => {
-    const response = await request(app).delete("/catalog/disciplines/000000000000000000000001");
+    const response = await request(app).delete(
+      "/catalog/disciplines/000000000000000000000001",
+    );
 
     expect(response.status).toBe(404);
     expect(response.body.message).toBe("Disciplina não encontrada");
   });
 
   it("deve retornar 400 para ID inválido no DELETE de disciplina", async () => {
-    const response = await request(app).delete("/catalog/disciplines/id-invalido");
+    const response = await request(app).delete(
+      "/catalog/disciplines/id-invalido",
+    );
 
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty("message");
@@ -330,9 +342,7 @@ describe("GET /status", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.data).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ label: "Publicado" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ label: "Publicado" })]),
     );
   });
 });
@@ -385,18 +395,22 @@ describe("POST /status", () => {
 
 describe("PUT /status/:id", () => {
   it("deve atualizar o label do status com sucesso", async () => {
-    const response = await request(app).put(`/catalog/status/${statusId}`).send({
-      label: "Publicado Atualizado",
-    });
+    const response = await request(app)
+      .put(`/catalog/status/${statusId}`)
+      .send({
+        label: "Publicado Atualizado",
+      });
 
     expect(response.status).toBe(200);
     expect(response.body.data.label).toBe("Publicado Atualizado");
   });
 
   it("deve desativar o status com sucesso", async () => {
-    const response = await request(app).put(`/catalog/status/${statusId}`).send({
-      isActive: false,
-    });
+    const response = await request(app)
+      .put(`/catalog/status/${statusId}`)
+      .send({
+        isActive: false,
+      });
 
     expect(response.status).toBe(200);
     expect(response.body.data.isActive).toBe(false);
@@ -429,7 +443,9 @@ describe("DELETE /status/:id", () => {
   });
 
   it("deve retornar 404 ao remover status inexistente", async () => {
-    const response = await request(app).delete("/catalog/status/000000000000000000000001");
+    const response = await request(app).delete(
+      "/catalog/status/000000000000000000000001",
+    );
 
     expect(response.status).toBe(404);
     expect(response.body.message).toBe("Status não encontrado");
