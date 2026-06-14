@@ -14,20 +14,9 @@ import {
   getMemoryPosts,
   updateMemoryPost,
 } from "./memory-data.service";
+import { IPostPayload } from "../interfaces/IPosts";
 
-export interface PostPayload {
-  title: string;
-  content: string;
-  summary: string;
-  imageUrl?: string;
-  series?: string;
-  semester?: string;
-  disciplineId: string;
-  authorId: string;
-  statusId: string;
-}
-
-export type PostUpdatePayload = Partial<PostPayload>;
+export type PostUpdatePayload = Partial<IPostPayload>;
 
 // ─────────────────────────────────── Helpers ──────────────────────────────────
 const PROFESSOR_DOMAIN = "@professor.com";
@@ -59,7 +48,10 @@ const ensureProfessorAuthor = async (authorId: string) => {
   }
 
   if (!author.email.endsWith(PROFESSOR_DOMAIN)) {
-    throw createAppError("Apenas usuários com email @professor.com podem criar, atualizar ou excluir posts", 403);
+    throw createAppError(
+      "Apenas usuários com email @professor.com podem criar, atualizar ou excluir posts",
+      403,
+    );
   }
 
   return author;
@@ -120,7 +112,9 @@ export const getAllPosts = async () => {
     return activePosts;
   }
 
-  const activeStatuses = await StatusModel.find({ isActive: true }).select("_id");
+  const activeStatuses = await StatusModel.find({ isActive: true }).select(
+    "_id",
+  );
   const activeStatusIds = [];
 
   for (const s of activeStatuses) {
@@ -154,14 +148,31 @@ export const getPostById = async (id: string) => {
   return post;
 };
 
-export const createPost = async (payload?: PostPayload) => {
+export const createPost = async (payload?: IPostPayload) => {
   if (!payload || Object.keys(payload).length === 0) {
     throw createAppError("Body da requisição não informado", 400);
   }
 
-  const { title, content, summary, imageUrl, series, semester, disciplineId, authorId, statusId } = payload;
+  const {
+    title,
+    content,
+    summary,
+    imageUrl,
+    series,
+    semester,
+    disciplineId,
+    authorId,
+    statusId,
+  } = payload;
 
-  if (!title || !content || !summary || !disciplineId || !authorId || !statusId) {
+  if (
+    !title ||
+    !content ||
+    !summary ||
+    !disciplineId ||
+    !authorId ||
+    !statusId
+  ) {
     throw createAppError("Campos obrigatórios não informados", 400);
   }
 
@@ -183,7 +194,10 @@ export const createPost = async (payload?: PostPayload) => {
     }
 
     if (!author.email.endsWith(PROFESSOR_DOMAIN)) {
-      throw createAppError("Apenas usuários com email @professor.com podem criar, atualizar ou excluir posts", 403);
+      throw createAppError(
+        "Apenas usuários com email @professor.com podem criar, atualizar ou excluir posts",
+        403,
+      );
     }
 
     if (!discipline) {
@@ -272,7 +286,10 @@ export const updatePost = async (id: string, payload: PostUpdatePayload) => {
     }
 
     if (!author.email.endsWith(PROFESSOR_DOMAIN)) {
-      throw createAppError("Apenas usuários com email @professor.com podem criar, atualizar ou excluir posts", 403);
+      throw createAppError(
+        "Apenas usuários com email @professor.com podem criar, atualizar ou excluir posts",
+        403,
+      );
     }
 
     if (!discipline) {
@@ -376,7 +393,10 @@ export const deletePost = async (id: string) => {
     }
 
     if (!author.email.endsWith(PROFESSOR_DOMAIN)) {
-      throw createAppError("Apenas usuários com email @professor.com podem criar, atualizar ou excluir posts", 403);
+      throw createAppError(
+        "Apenas usuários com email @professor.com podem criar, atualizar ou excluir posts",
+        403,
+      );
     }
 
     deleteMemoryPost(id);

@@ -15,9 +15,12 @@ export const createStatusSchema = z.object({
 
 export const createUserSchema = z.object({
   name: z.string().trim().min(1, "Campo obrigatório não informado: name"),
-  username: z.string().trim().min(1, "Campo obrigatório não informado: username"),
+  username: z
+    .string()
+    .trim()
+    .min(1, "Campo obrigatório não informado: username"),
   password: z.string().min(1, "Campo obrigatório não informado: password"),
-  email: z.string().trim().email({ message: "Email inválido" }),
+  email: z.email({ message: "Email inválido" }).trim(),
   mobilePhone: z.string().trim().optional(),
   externalId: z.string().trim().optional(),
   isActive: z.boolean().optional().default(true),

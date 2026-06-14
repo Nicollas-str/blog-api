@@ -1,7 +1,7 @@
 import request from "supertest";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import app from "../src/app";
-import connectDB, { disconnectDB } from "../src/config/database";
+import { connectDB, disconnectDB } from "../src/config/database";
 import DisciplineModel from "../src/models/disciplines.model";
 import PostModel from "../src/models/posts.model";
 import StatusModel from "../src/models/status.model";
@@ -150,7 +150,9 @@ describe("POST /posts — validação de campos", () => {
     });
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toBe("Campo obrigatório não informado: título");
+    expect(response.body.message).toBe(
+      "Campo obrigatório não informado: título",
+    );
   });
 
   it("deve retornar 400 quando título for apenas HTML vazio", async () => {
@@ -164,7 +166,9 @@ describe("POST /posts — validação de campos", () => {
     });
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toBe("Campo obrigatório não informado: título");
+    expect(response.body.message).toBe(
+      "Campo obrigatório não informado: título",
+    );
   });
 
   it("deve retornar 400 com mensagem correta quando ID tiver formato inválido", async () => {
@@ -283,7 +287,9 @@ describe("PUT /posts/:id — validação de campos", () => {
     });
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toBe("Campo obrigatório não informado: semestre");
+    expect(response.body.message).toBe(
+      "Campo obrigatório não informado: semestre",
+    );
   });
 
   it("deve sanitizar tags HTML nos campos de texto no PUT", async () => {
@@ -299,7 +305,9 @@ describe("PUT /posts/:id — validação de campos", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.data.title).toBe("Título Atualizado via PUT");
-    expect(response.body.data.content).toBe("Conteúdo atualizado via PUT com HTML");
+    expect(response.body.data.content).toBe(
+      "Conteúdo atualizado via PUT com HTML",
+    );
     expect(response.body.data.summary).toBe("Resumo atualizado via PUT");
   });
 });
@@ -336,15 +344,17 @@ describe("PUT /posts/:id", () => {
   });
 
   it("deve retornar 404 para post inexistente", async () => {
-    const response = await request(app).put("/posts/000000000000000000000001").send({
-      title: "Título válido",
-      content: "Conteúdo válido do post",
-      summary: "Resumo válido do post",
-      semester: "1",
-      disciplineId,
-      authorId: professorId,
-      statusId,
-    });
+    const response = await request(app)
+      .put("/posts/000000000000000000000001")
+      .send({
+        title: "Título válido",
+        content: "Conteúdo válido do post",
+        summary: "Resumo válido do post",
+        semester: "1",
+        disciplineId,
+        authorId: professorId,
+        statusId,
+      });
 
     expect(response.status).toBe(404);
     expect(response.body).toHaveProperty("message");
@@ -422,9 +432,11 @@ describe("PATCH /posts/:id", () => {
   });
 
   it("deve retornar 404 para post inexistente", async () => {
-    const response = await request(app).patch("/posts/000000000000000000000001").send({
-      title: "Tentativa de patch",
-    });
+    const response = await request(app)
+      .patch("/posts/000000000000000000000001")
+      .send({
+        title: "Tentativa de patch",
+      });
 
     expect(response.status).toBe(404);
     expect(response.body).toHaveProperty("message");
@@ -458,7 +470,9 @@ describe("DELETE /posts/:id", () => {
   });
 
   it("deve retornar 404 para post inexistente", async () => {
-    const response = await request(app).delete("/posts/000000000000000000000001");
+    const response = await request(app).delete(
+      "/posts/000000000000000000000001",
+    );
 
     expect(response.status).toBe(404);
     expect(response.body).toHaveProperty("message");
