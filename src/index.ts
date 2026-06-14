@@ -14,6 +14,31 @@ const USE_IN_MEMORY_DB = process.env.USE_IN_MEMORY_DB === "true";
 let server: ReturnType<typeof app.listen> | null = null;
 let isShuttingDown = false;
 
+const start = async (): Promise<void> => {
+  if (!USE_IN_MEMORY_DB && !MONGODB_URI) {
+    throw new Error("MONGODB_URI não definida no .env");
+  }
+
+  if (USE_IN_MEMORY_DB) {
+    resetMemoryStore();
+    console.log("API iniciada em modo local com dados em memória.");
+  } else {
+    await connectDB(MONGODB_URI);
+  }
+
+  server = app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+  });
+
+  process.on("SIGINT", () => {
+    void shutdown("SIGINT");
+  });
+
+  process.on("SIGTERM", () => {
+    void shutdown("SIGTERM");
+  });
+};
+
 const shutdown = async (signal: string): Promise<void> => {
   if (isShuttingDown) return;
   isShuttingDown = true;
@@ -38,31 +63,6 @@ const shutdown = async (signal: string): Promise<void> => {
     console.error("Erro ao encerrar aplicação:", error);
     process.exit(1);
   }
-};
-
-const start = async (): Promise<void> => {
-  if (!USE_IN_MEMORY_DB && !MONGODB_URI) {
-    throw new Error("MONGODB_URI não definida no .env");
-  }
-
-  if (USE_IN_MEMORY_DB) {
-    resetMemoryStore();
-    console.log("API iniciada em modo local com dados em memória.");
-  } else {
-    await connectDB(MONGODB_URI);
-  }
-
-  server = app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
-  });
-
-  process.on("SIGINT", () => {
-    void shutdown("SIGINT");
-  });
-
-  process.on("SIGTERM", () => {
-    void shutdown("SIGTERM");
-  });
 };
 
 start().catch((error: Error) => {
