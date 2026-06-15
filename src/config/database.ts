@@ -5,7 +5,7 @@ export const connectDB = async (
 ): Promise<typeof mongoose.connection> => {
   try {
     if (!uri) {
-      throw new Error("A variável MONGO_URI não foi informada.");
+      throw new Error("A variavel MONGODB_URI nao foi informada.");
     }
 
     if (mongoose.connection.readyState === 1) {
@@ -25,7 +25,7 @@ export const connectDB = async (
         ? error.message
         : "Erro desconhecido ao conectar no MongoDB";
 
-    throw new Error(`Falha na conexão com MongoDB: ${message}`);
+    throw new Error(`Falha na conexao com MongoDB: ${message}`);
   }
 };
 

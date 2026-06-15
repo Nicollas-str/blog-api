@@ -16,12 +16,12 @@ let isShuttingDown = false;
 
 const start = async (): Promise<void> => {
   if (!USE_IN_MEMORY_DB && !MONGODB_URI) {
-    throw new Error("MONGODB_URI não definida no .env");
+    throw new Error("MONGODB_URI nao definida no .env");
   }
 
   if (USE_IN_MEMORY_DB) {
     resetMemoryStore();
-    console.log("API iniciada em modo local com dados em memória.");
+    console.log("API iniciada em modo local com dados em memoria.");
   } else {
     await connectDB(MONGODB_URI);
   }
@@ -43,7 +43,7 @@ const shutdown = async (signal: string): Promise<void> => {
   if (isShuttingDown) return;
   isShuttingDown = true;
 
-  console.log(`Recebido ${signal}. Encerrando aplicação...`);
+  console.log(`Recebido ${signal}. Encerrando aplicacao...`);
 
   try {
     if (!USE_IN_MEMORY_DB) {
@@ -60,12 +60,12 @@ const shutdown = async (signal: string): Promise<void> => {
       process.exit(0);
     }
   } catch (error) {
-    console.error("Erro ao encerrar aplicação:", error);
+    console.error("Erro ao encerrar aplicacao:", error);
     process.exit(1);
   }
 };
 
 start().catch((error: Error) => {
-  console.error(`Falha ao iniciar a aplicação: ${error.message}`);
+  console.error(`Falha ao iniciar a aplicacao: ${error.message}`);
   process.exit(1);
 });
