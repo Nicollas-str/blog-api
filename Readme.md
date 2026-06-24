@@ -102,6 +102,42 @@ docker compose down -v
 - Swagger: [http://localhost:3000/docs](http://localhost:3000/docs)
 - Healthcheck: [http://localhost:3000/health](http://localhost:3000/health)
 
+# 🛣️ Rotas disponíveis
+
+| Método | Endpoint           | Descrição |
+| ------ | ------------------ | --------- |
+| GET    | `/catalog/users`           | Lista usuários disponíveis para teste |
+| POST   | `/catalog/users`           | Cria um novo usuário |
+| PUT    | `/catalog/users/:id`       | Atualiza um usuário existente |
+| DELETE | `/catalog/users/:id`       | Remove um usuário existente |
+| GET    | `/catalog/disciplines`     | Lista disciplinas disponíveis para seleção |
+| POST   | `/catalog/disciplines`     | Cria uma nova disciplina |
+| PUT    | `/catalog/disciplines/:id` | Atualiza uma disciplina existente |
+| DELETE | `/catalog/disciplines/:id` | Remove uma disciplina existente |
+| GET    | `/catalog/status`          | Lista status disponíveis para seleção |
+| POST   | `/catalog/status`          | Cria um novo status |
+| PUT    | `/catalog/status/:id`      | Atualiza um status existente |
+| DELETE | `/catalog/status/:id`      | Remove um status existente |
+| GET    | `/posts`           | Lista somente os posts com status ativo |
+| GET    | `/posts/:id`       | Busca um post por ID |
+| POST   | `/posts`           | Cria um post validando autor com domínio `@professor.com` |
+| PUT    | `/posts/:id`       | Atualiza um post existente |
+| DELETE | `/posts/:id`       | Remove um post existente |
+
+> 💡 O `GET /posts` retorna apenas posts vinculados a um status com `isActive: true`. Posts com status inativo não aparecem na listagem.
+
+---
+
+# 🛣️ Rotas disponíveis
+
+| Método | Endpoint     | Descrição            |
+| ------ | ------------ | -------------------- |
+| GET    | `/`          | Status da API        |
+| GET    | `/posts`     | Lista todos os posts |
+| GET    | `/posts/:id` | Busca um post por ID |
+
+---
+
 ## Como rodar sem Docker
 
 ```bash

@@ -35,7 +35,8 @@ FROM gcr.io/distroless/nodejs20-debian12:nonroot AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production \
-    PORT=3000
+    PORT=3000 \
+    PATH=/nodejs/bin
 
 COPY --from=prod-deps --chown=nonroot:nonroot /app/node_modules ./node_modules
 COPY --from=build --chown=nonroot:nonroot /app/dist ./dist

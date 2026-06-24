@@ -2,6 +2,7 @@ name: blog-api
 
 services:
   app:
+    image: blog-api
     build:
       context: .
       dockerfile: Dockerfile
@@ -28,7 +29,7 @@ services:
       test:
         [
           "CMD",
-          "/nodejs/bin/node",
+          "node",
           "-e",
           "fetch('http://127.0.0.1:3000/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
         ]
